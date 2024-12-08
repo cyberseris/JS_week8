@@ -123,13 +123,14 @@ function showProducts(data){
   
   function filterProducts(){
     productSelect.addEventListener('change', function(e){
-      if(e.target.value=="全部"){
+      const category = e.target.value
+      if(category=="全部"){
         getProducts("全部");
-      }else if(e.target.value=="床架"){
+      }else if(category=="床架"){
         getProducts("床架");
-      }else if(e.target.value=="收納"){
+      }else if(category=="收納"){
         getProducts("收納");
-      }else if(e.target.value=="窗簾"){
+      }else if(category=="窗簾"){
         getProducts("窗簾");
       }
     })  
