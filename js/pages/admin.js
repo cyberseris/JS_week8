@@ -1,18 +1,27 @@
- async function getOrderList(){
+async function getOrderList(){
     await axios.get(`https://livejs-api.hexschool.io/api/livejs/v1/admin/${api_path}/orders`, {
         headers:{
           'Authorization': token
         } 
     })
     .then(function(response){
-        //console.log(response.data.orders)
-        //console.log(response.data.orders.products)
         const data = response.data.orders
         showOrderList(data)
         calcRevenue(data)
-        const delSingleOrderBtn = document.querySelectorAll('.delSingleOrder-Btn') 
+
+        const orderStatus = document.querySelectorAll('.orderStatus');
+        for(let k=0;k<data.length;k++){
+            orderStatus[k].addEventListener('click', function(e){
+                e.preventDefault();
+                console.log(e.target.dataset.id)
+                changeOrderStatus(e.target.dataset.id);
+            })
+        }
+
+        const delSingleOrderBtn = document.querySelectorAll('.delSingleOrder-Btn'); 
         for(let i=0;i<data.length;i++){
             delSingleOrderBtn[i].addEventListener('click', function(e){
+                e.preventDefault();
                 deleteSingleOrder(e.target.dataset.id)
             }) 
         }
@@ -27,11 +36,8 @@
     let orderProducts;
     if(orders.length){
         orders.forEach(item=>{
-            //console.log(item.createdAt)
             const timeStamp = new Date(item.createdAt*1000) 
-            //console.log(timeStamp)
             const thisTime = `${timeStamp.getFullYear()}/${timeStamp.getMonth()+1}/${timeStamp.getDate()}`;
-            //console.log(thisTime) 
             orderProducts = [];
             item.products.forEach(pd=>
                 orderProducts.push(pd.title)
@@ -49,8 +55,8 @@
                             <p>${orderProducts.join(", ")}</p>
                         </td>
                         <td>${thisTime}</td>
-                        <td class="orderStatus">
-                            <a href="#">${item.paid?'已處理':'未處理'}</a>
+                        <td>
+                            <a href="#" class="orderStatus" data-id=${item.id}>${item.paid?'已處理':'未處理'}</a>
                         </td>
                         <td>
                             <input type="button" class="delSingleOrder-Btn" data-id = ${item.id} value="刪除">
@@ -61,6 +67,26 @@
 
     orderList.innerHTML = list
  }
+
+ async function changeOrderStatus(id){
+    console.log("id: ", id)
+    await axios.put(`https://livejs-api.hexschool.io/api/livejs/v1/admin/${api_path}/orders`,{
+        data:{
+            "id":id,
+            "paid": true
+        }
+    },{
+        headers:{
+            'Authorization': token
+        }
+    })
+    .then(function(response){
+        getOrderList();
+    })
+    .catch(function(err){
+        console.log("changeOrderStatus Error: ", err);
+    })
+}
 
  function calcRevenue(orders){
     let totalObj = {}
@@ -109,7 +135,6 @@
         }
     })
     .then(function(response){
-        console.log(response)
         getOrderList()
     })
     .catch(function(err){
@@ -124,7 +149,6 @@
         }
     })
     .then(function(response){
-        console.log(response)
         getOrderList()
     })
     .catch(function(err){
@@ -132,18 +156,24 @@
     })
  }
 
-const orderList = document.querySelector('.js-orderList')
-const discardAllBtn = document.querySelector('.discardAllBtn')
+const orderList = document.querySelector('.js-orderList');
+const discardAllBtn = document.querySelector('.discardAllBtn');
 
-discardAllBtn.addEventListener('click', function(){
-    deleteAllOrders()
+discardAllBtn.addEventListener('click', function(e){
+    e.preventDefault();
+    deleteAllOrders();
 })
 
-getOrderList()
-renderChart()
+/* orderStatus.addEventListener('click', function(e){
+    e.preventDefault();
+    changeOrderStatus();
+}) */
 
-   
-   
+getOrderList();
+renderChart();
+
+
+
 // 預設 JS，請同學不要修改此處
 let menuOpenBtn = document.querySelector('.menuToggle');
 let linkBtn = document.querySelectorAll('.topBar-menu a');
